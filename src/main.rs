@@ -1,11 +1,20 @@
 use bevy::{
+    diagnostic::{
+        EntityCountDiagnosticsPlugin, FrameTimeDiagnosticsPlugin,
+        SystemInformationDiagnosticsPlugin,
+    },
     pbr::{CascadeShadowConfigBuilder, DirectionalLightShadowMap},
     prelude::*,
 };
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 use bevy_web_asset::WebAssetPlugin;
 use iyes_perf_ui::prelude::*;
+use plugins::scene_viewer_plugin::{SceneHandle, SceneViewerPlugin};
 use std::f32::consts::*;
+use utils::parse_scene;
+
+mod plugins;
+mod utils;
 
 fn main() {
     let mut app = App::new();
@@ -26,11 +35,14 @@ fn main() {
                 }),
                 ..default()
             }),
+            PanOrbitCameraPlugin,
+            SceneViewerPlugin,
         ))
-        .add_plugins(PanOrbitCameraPlugin)
-        .add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin)
-        .add_plugins(bevy::diagnostic::EntityCountDiagnosticsPlugin)
-        .add_plugins(bevy::diagnostic::SystemInformationDiagnosticsPlugin)
+        .add_plugins((
+            FrameTimeDiagnosticsPlugin,
+            EntityCountDiagnosticsPlugin,
+            SystemInformationDiagnosticsPlugin,
+        ))
         .add_plugins(PerfUiPlugin)
         .add_systems(Startup, setup)
         .add_systems(Update, animate_light_direction)
@@ -68,13 +80,9 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         ..default()
     });
 
-    let model = asset_server
-        .load(GltfAssetLabel::Scene(0).from_asset("models/FlightHelmet/FlightHelmet.gltf"));
-    commands.spawn(SceneBundle {
-        scene: model,
-        transform: Transform::from_xyz(0.0, 0.0, 0.0),
-        ..default()
-    });
+    let scene_path = "models/FlightHelmet/FlightHelmet.gltf";
+    let (file_path, scene_index) = parse_scene(scene_path.to_string());
+    commands.insert_resource(SceneHandle::new(asset_server.load(file_path), scene_index));
 
     commands.spawn(PerfUiCompleteBundle::default());
 }
