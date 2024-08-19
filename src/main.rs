@@ -19,34 +19,34 @@ mod utils;
 fn main() {
     let mut app = App::new();
 
-    #[cfg(debug_assertions)] // debug/dev builds only
+    /* #[cfg(debug_assertions)] // debug/dev builds only
     {
         use bevy::diagnostic::LogDiagnosticsPlugin;
         app.add_plugins(LogDiagnosticsPlugin::default());
-    }
+    } */
 
-    app.insert_resource(DirectionalLightShadowMap { size: 4096 })
-        .add_plugins((
-            WebAssetPlugin,
-            DefaultPlugins.set(WindowPlugin {
-                primary_window: Some(Window {
-                    title: "Mower".to_string(),
-                    ..default()
-                }),
+    app.add_plugins((
+        WebAssetPlugin,
+        DefaultPlugins.set(WindowPlugin {
+            primary_window: Some(Window {
+                title: "Mower".to_string(),
                 ..default()
             }),
-            PanOrbitCameraPlugin,
-            SceneViewerPlugin,
-        ))
-        .add_plugins((
-            FrameTimeDiagnosticsPlugin,
-            EntityCountDiagnosticsPlugin,
-            SystemInformationDiagnosticsPlugin,
-        ))
-        .add_plugins(PerfUiPlugin)
-        .add_systems(Startup, setup)
-        .add_systems(Update, animate_light_direction)
-        .run();
+            ..default()
+        }),
+        PanOrbitCameraPlugin,
+        SceneViewerPlugin,
+    ))
+    .add_plugins((
+        FrameTimeDiagnosticsPlugin,
+        EntityCountDiagnosticsPlugin,
+        SystemInformationDiagnosticsPlugin,
+    ))
+    .insert_resource(DirectionalLightShadowMap { size: 4096 })
+    .add_plugins(PerfUiPlugin)
+    .add_systems(Startup, setup)
+    .add_systems(Update, animate_light_direction)
+    .run();
 }
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -81,6 +81,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     });
 
     let scene_path = "models/FlightHelmet/FlightHelmet.gltf";
+    // let scene_path = "http://183.162.254.169:8074/public/uploads/manual/models/juese_c/model.gltf";
     let (file_path, scene_index) = parse_scene(scene_path.to_string());
     commands.insert_resource(SceneHandle::new(asset_server.load(file_path), scene_index));
 
