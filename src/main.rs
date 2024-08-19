@@ -4,6 +4,7 @@ use bevy::{
 };
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 use bevy_web_asset::WebAssetPlugin;
+use iyes_perf_ui::prelude::*;
 use std::f32::consts::*;
 
 fn main() {
@@ -27,6 +28,10 @@ fn main() {
             }),
         ))
         .add_plugins(PanOrbitCameraPlugin)
+        .add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin)
+        .add_plugins(bevy::diagnostic::EntityCountDiagnosticsPlugin)
+        .add_plugins(bevy::diagnostic::SystemInformationDiagnosticsPlugin)
+        .add_plugins(PerfUiPlugin)
         .add_systems(Startup, setup)
         .add_systems(Update, animate_light_direction)
         .run();
@@ -70,6 +75,8 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         transform: Transform::from_xyz(0.0, 0.0, 0.0),
         ..default()
     });
+
+    commands.spawn(PerfUiCompleteBundle::default());
 }
 
 fn animate_light_direction(
