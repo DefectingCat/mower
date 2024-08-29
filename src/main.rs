@@ -81,7 +81,6 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     });
 
     let scene_path = "models/FlightHelmet/FlightHelmet.gltf";
-    // let scene_path = "http://183.162.254.169:8074/public/uploads/manual/models/juese_c/model.gltf";
     let (file_path, scene_index) = parse_scene(scene_path.to_string());
     commands.insert_resource(SceneHandle::new(asset_server.load(file_path), scene_index));
 
