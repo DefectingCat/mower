@@ -10,6 +10,16 @@ build:
 release: clean
 	$(CARGO) build --release
 
+wasm:
+	$(CARGO) build --profile wasm-release --target wasm32-unknown-unknown \
+		&& wasm-bindgen --out-name mower \
+		--out-dir dist \
+		--target web target/wasm32-unknown-unknown/wasm-release/mower.wasm
+
+deps:
+	rustup target add wasm32-unknown-unknown \
+		&& $(CARGO) install wasm-bindgen-cli
+
 dev:
 	$(CARGO) watch -x run
 
