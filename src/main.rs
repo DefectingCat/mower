@@ -28,12 +28,7 @@ fn main() {
             }),
         PanOrbitCameraPlugin,
     ))
-    /* .add_plugins((
-        EntityCountDiagnosticsPlugin,
-        SystemInformationDiagnosticsPlugin,
-    )) */
     .insert_resource(DirectionalLightShadowMap { size: 4096 })
-    // .add_plugins(PerfUiPlugin)
     .add_systems(Startup, setup)
     .add_systems(Update, animate_light_direction)
     .run();
