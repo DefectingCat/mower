@@ -84,8 +84,6 @@ fn setup(
             intensity: 250.0,
         },
     ));
-
-    // commands.spawn(PerfUiCompleteBundle::default());
 }
 
 fn animate_light_direction(
