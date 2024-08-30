@@ -3,15 +3,13 @@ use bevy::{
         EntityCountDiagnosticsPlugin, FrameTimeDiagnosticsPlugin,
         SystemInformationDiagnosticsPlugin,
     },
-    pbr::{CascadeShadowConfigBuilder, DirectionalLightShadowMap},
+    pbr::DirectionalLightShadowMap,
     prelude::*,
 };
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 use bevy_web_asset::WebAssetPlugin;
 use iyes_perf_ui::prelude::*;
-use plugins::scene_viewer_plugin::{SceneHandle, SceneViewerPlugin};
 use std::f32::consts::*;
-use utils::parse_scene;
 
 mod plugins;
 mod utils;
@@ -35,7 +33,6 @@ fn main() {
             ..default()
         }),
         PanOrbitCameraPlugin,
-        SceneViewerPlugin,
     ))
     .add_plugins((
         FrameTimeDiagnosticsPlugin,
@@ -49,21 +46,18 @@ fn main() {
     .run();
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    // Camera controlls env map
-    commands.spawn((
-        Camera3dBundle {
-            transform: Transform::from_xyz(0.7, 1.0, 1.0)
-                .looking_at(Vec3::new(0.0, 0.3, 0.0), Vec3::Y),
-            ..default()
-        },
-        PanOrbitCamera::default(),
-        EnvironmentMapLight {
-            diffuse_map: asset_server.load("environment_maps/pisa_diffuse_rgb9e5_zstd.ktx2"),
-            specular_map: asset_server.load("environment_maps/pisa_specular_rgb9e5_zstd.ktx2"),
-            intensity: 250.0,
-        },
-    ));
+fn setup(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    asset_server: Res<AssetServer>,
+) {
+    // Ground
+    commands.spawn(PbrBundle {
+        mesh: meshes.add(Plane3d::default().mesh().size(5.0, 5.0)),
+        material: materials.add(Color::srgb(0.3, 0.5, 0.3)),
+        ..default()
+    });
 
     commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
@@ -71,18 +65,32 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..default()
         },
         transform: Transform::from_xyz(2.0, 4.0, 2.0),
-        cascade_shadow_config: CascadeShadowConfigBuilder {
-            num_cascades: 1,
-            maximum_distance: 1.6,
-            ..default()
-        }
-        .into(),
         ..default()
     });
 
-    let scene_path = "models/FlightHelmet/FlightHelmet.gltf";
-    let (file_path, scene_index) = parse_scene(scene_path.to_string());
-    commands.insert_resource(SceneHandle::new(asset_server.load(file_path), scene_index));
+    let scene_path = "models/FlightHelmet/FlightHelmet.gltf#Scene0";
+    let model = asset_server.load(GltfAssetLabel::Scene(0).from_asset(scene_path));
+    commands.spawn(SceneBundle {
+        scene: model,
+        ..default()
+    });
+
+    // Camera controlls env map
+    commands.spawn((
+        Camera3dBundle {
+            transform: Transform::from_xyz(0.0, 1.0, 1.5),
+            ..default()
+        },
+        PanOrbitCamera {
+            focus: Vec3::new(0.0, 0.2, 0.0),
+            ..default()
+        },
+        EnvironmentMapLight {
+            diffuse_map: asset_server.load("environment_maps/pisa_diffuse_rgb9e5_zstd.ktx2"),
+            specular_map: asset_server.load("environment_maps/pisa_specular_rgb9e5_zstd.ktx2"),
+            intensity: 250.0,
+        },
+    ));
 
     commands.spawn(PerfUiCompleteBundle::default());
 }
