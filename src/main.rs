@@ -1,14 +1,5 @@
-use bevy::{
-    diagnostic::{
-        EntityCountDiagnosticsPlugin, FrameTimeDiagnosticsPlugin,
-        SystemInformationDiagnosticsPlugin,
-    },
-    pbr::DirectionalLightShadowMap,
-    prelude::*,
-};
+use bevy::{asset::AssetMetaCheck, pbr::DirectionalLightShadowMap, prelude::*};
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
-use bevy_web_asset::WebAssetPlugin;
-use iyes_perf_ui::prelude::*;
 use std::f32::consts::*;
 
 mod plugins;
@@ -17,30 +8,32 @@ mod utils;
 fn main() {
     let mut app = App::new();
 
-    /* #[cfg(debug_assertions)] // debug/dev builds only
-    {
-        use bevy::diagnostic::LogDiagnosticsPlugin;
-        app.add_plugins(LogDiagnosticsPlugin::default());
-    } */
-
     app.add_plugins((
-        WebAssetPlugin,
-        DefaultPlugins.set(WindowPlugin {
-            primary_window: Some(Window {
-                title: "Mower".to_string(),
+        DefaultPlugins
+            .set(AssetPlugin {
+                // Wasm builds will check for meta files (that don't exist) if this isn't set.
+                // This causes errors and even panics on web build on itch.
+                // See https://github.com/bevyengine/bevy_github_ci_template/issues/48.
+                meta_check: AssetMetaCheck::Never,
+                ..default()
+            })
+            .set(WindowPlugin {
+                primary_window: Some(Window {
+                    title: "Mower".to_string(),
+                    canvas: Some("#bevy".to_string()),
+                    fit_canvas_to_parent: true,
+                    ..default()
+                }),
                 ..default()
             }),
-            ..default()
-        }),
         PanOrbitCameraPlugin,
     ))
-    .add_plugins((
-        FrameTimeDiagnosticsPlugin,
+    /* .add_plugins((
         EntityCountDiagnosticsPlugin,
         SystemInformationDiagnosticsPlugin,
-    ))
+    )) */
     .insert_resource(DirectionalLightShadowMap { size: 4096 })
-    .add_plugins(PerfUiPlugin)
+    // .add_plugins(PerfUiPlugin)
     .add_systems(Startup, setup)
     .add_systems(Update, animate_light_direction)
     .run();
@@ -92,7 +85,7 @@ fn setup(
         },
     ));
 
-    commands.spawn(PerfUiCompleteBundle::default());
+    // commands.spawn(PerfUiCompleteBundle::default());
 }
 
 fn animate_light_direction(
